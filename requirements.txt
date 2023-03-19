@@ -1,0 +1,7 @@
+Flask
+pytube
+google-api-python-client
+pandas
+scikit-learn
+nltk
+dotenv
