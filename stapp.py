@@ -15,7 +15,9 @@ from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
-
+nltk.download('stopwords')
+nltk.download('punkt')
+nltk.download('wordnet')
 
 STOPWORDS=set(stopwords.words('english'))
 
