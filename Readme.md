@@ -15,6 +15,7 @@ Deployment:
 The web application is hosted on an AWS server.
 
 application - https://aryann29-youtube-comment-analyzer-stapp-fswa2l.streamlit.app/
+
 aws(not working rn) =  <!--  http://ec2-13-48-49-211.eu-north-1.compute.amazonaws.com:8080/ -->
 
 
