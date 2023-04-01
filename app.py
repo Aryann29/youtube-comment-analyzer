@@ -14,11 +14,36 @@ from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
+load_dotenv()
+
+import mysql.connector
+
+# ytcdb = mysql.connector.connect(
+#     host='localhost',
+#     user='aryanmain',
+#     password='aryan123',
+#     db='ytcomments',
+    
+# )
+
+ytcdb = mysql.connector.connect(
+    
+    host = os.getenv('DB_HOST'),
+    user = os.getenv('DB_USER'),
+    password = os.getenv('DB_PASSWORD'),
+    database = os.getenv('DB_NAME')
+    
+)
+
+
+
+
+mycursor = ytcdb.cursor()
 
 
 STOPWORDS=set(stopwords.words('english'))
 
-load_dotenv()
+
 
 app = Flask(__name__)
 
@@ -92,7 +117,7 @@ def create_df_author_comments(response):
   for i in range(len(response["items"])):
     authorname.append(response["items"][i]["snippet"]["topLevelComment"]["snippet"]["authorDisplayName"])
     comments.append(response["items"][i]["snippet"]["topLevelComment"]["snippet"]["textOriginal"])
-  df = pd.DataFrame(comments, index = authorname,columns=["Comments"])
+  df = pd.DataFrame({'author_name': authorname, 'Comments': comments})
   return df
 
 
@@ -127,11 +152,26 @@ def analyze():
     response = google_api(video_id)
     
     # Create a DataFrame from the comments
-    df = create_df_author_comments(response)
-   
+    comments_author = create_df_author_comments(response)
+    
+    
     
     # Classify the comments using the pre-trained model
-    results = pd.DataFrame(res_sep(classify(df["Comments"])),columns=["sentiment"])
+    results = pd.DataFrame(res_sep(classify(comments_author["Comments"])),columns=["sentiment"])
+  
+
+
+    df = pd.merge(comments_author.reset_index(drop=True), results.reset_index(drop=True), how='outer', left_index=True, right_index=True)
+    # print(df.shape)
+    sql = "INSERT INTO ytca (author_name,comments,sentiment) VALUES (%s, %s, %s)"
+    values = df.values.tolist()
+
+    mycursor.executemany(sql,values)
+    print(mycursor.rowcount, "record(s) inserted.")
+
+
+    ytcdb.commit()
+
 
    
 
@@ -142,9 +182,9 @@ def analyze():
 
     
     # Display the result
-    return f"{positive:.1f}% of comments are Positive and {negative:.1f}% are Negative <br><br><a href='/'>Analyze another video</a>"
+    return f"{positive:.1f}% of comments are Positive and {negative:.1f}% are Negative <br><br><a href='/'>Analyze another video{df}</a>"
     
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8080)
 
 

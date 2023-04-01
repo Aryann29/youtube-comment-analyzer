@@ -15,6 +15,19 @@ from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
+import mysql.connector
+
+
+ytcdb = mysql.connector.connect(
+    host= DB_HOST,
+    user= DB_USER,
+    password= DB_PASSWORD,
+    database= DB_NAME
+    
+)
+
+mycursor = ytcdb.cursor()
+
 nltk.download('stopwords')
 nltk.download('punkt')
 nltk.download('wordnet')
@@ -95,7 +108,7 @@ def create_df_author_comments(response):
   for i in range(len(response["items"])):
     authorname.append(response["items"][i]["snippet"]["topLevelComment"]["snippet"]["authorDisplayName"])
     comments.append(response["items"][i]["snippet"]["topLevelComment"]["snippet"]["textOriginal"])
-  df = pd.DataFrame(comments, index = authorname,columns=["Comments"])
+  df = pd.DataFrame({'author_name': authorname, 'Comments': comments})
   return df
 
 
@@ -129,10 +142,20 @@ def main():
         response = google_api(video_id)
 
         # Create a DataFrame from the comments
-        df = create_df_author_comments(response)
+        comments_author = create_df_author_comments(response)
+    
+        results = pd.DataFrame(res_sep(classify(comments_author["Comments"])),columns=["sentiment"])
+        
+        df = pd.merge(comments_author.reset_index(drop=True), results.reset_index(drop=True), how='outer', left_index=True, right_index=True)
+    # print(df.shape)
+        sql = "INSERT INTO ytca (author_name,comments,sentiment) VALUES (%s, %s, %s)"
+        values = df.values.tolist()
 
-        # Classify the comments using the pre-trained model
-        results = pd.DataFrame(res_sep(classify(df["Comments"])), columns=["sentiment"])
+        mycursor.executemany(sql,values)
+        print(mycursor.rowcount, "record(s) inserted.")
+
+
+        ytcdb.commit()
 
         # Calculate the percentage of positive and negative comments
         positive = round((results['sentiment'] == 1).sum() / len(results) * 100)
