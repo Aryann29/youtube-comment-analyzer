@@ -6,3 +6,4 @@ scikit-learn
 nltk
 python-dotenv
 mysql.connector.python
+streamlit

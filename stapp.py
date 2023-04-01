@@ -1,5 +1,6 @@
 
 import streamlit as st
+
 import os
 from pytube import extract
 import googleapiclient.discovery
@@ -15,8 +16,15 @@ from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
+
 import mysql.connector
 
+st.secrets.load_secrets()
+YOUR_API_KEY = st.secrets["database"]["YOUR_API_KEY"]
+DB_HOST = st.secrets["database"]["DB_HOST"]
+DB_USER = st.secrets["database"]["DB_USER"]
+DB_PASSWORD = st.secrets["database"]["DB_PASSWORD"]
+DB_NAME = st.secrets["database"]["DB_NAME"]
 
 ytcdb = mysql.connector.connect(
     host= DB_HOST,
