@@ -18,13 +18,7 @@ load_dotenv()
 
 import mysql.connector
 
-# ytcdb = mysql.connector.connect(
-#     host='localhost',
-#     user='aryanmain',
-#     password='aryan123',
-#     db='ytcomments',
-    
-# )
+
 
 ytcdb = mysql.connector.connect(
     
@@ -162,7 +156,7 @@ def analyze():
 
 
     df = pd.merge(comments_author.reset_index(drop=True), results.reset_index(drop=True), how='outer', left_index=True, right_index=True)
-    # print(df.shape)
+    
     sql = "INSERT INTO ytca (author_name,comments,sentiment) VALUES (%s, %s, %s)"
     values = df.values.tolist()
 
@@ -182,7 +176,7 @@ def analyze():
 
     
     # Display the result
-    return f"{positive:.1f}% of comments are Positive and {negative:.1f}% are Negative <br><br><a href='/'>Analyze another video{df}</a>"
+    return f"{positive:.1f}% of comments are Positive and {negative:.1f}% are Negative <br><br><a href='/'>Analyze another video</a>"
     
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8080)
